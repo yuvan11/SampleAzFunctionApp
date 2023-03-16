@@ -1,0 +1,37 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'dev'
+
+- task: UseDotNet@2
+  inputs:
+    version: '6.x'
+    includePreviewVersions: true
+
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
+    feedsToUse: 'select'
+    nugetConfigPath: NuGet.config   
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build Sample App'
+  inputs:
+    command: build
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: ArchiveFiles@2
+  displayName: 'Package Sample App'
+  inputs:
+    rootFolderOrFile: '$(Build.BinariesDirectory)'
+    includeRootFolder: false 
+    archiveType: 'zip' 
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(buildConfiguration)/$(Build.BuildId).zip' # string. Required. Archive file to create. Default: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip.
+    replaceExistingArchive: true
